@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Surprise for BF</title>
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+<style>
+body {
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+    background: pink;
+    overflow-x: hidden;
+}
+.slide {
+    display: none;
+    height: 100vh;
+    width: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+    text-align: center;
+    position: relative;
+    background: pink;
+}
+.active { display: block; }
+
+h1, h2 {
+    font-family: 'Pacifico', cursive;
+    margin: 15px 0;
+    line-height: 1.4;
+}
+h1 { color: #4b0082; font-size: 3em; }
+h2 { color: #8b008b; font-size: 1.8em; }
+
+button {
+    padding: 15px 30px;
+    font-size: 18px;
+    background: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.3s ease;
+    margin-top: 20px;
+}
+button:hover { transform: scale(1.1); }
+
+input[type="text"], input[type="password"] {
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 8px;
+    border: 2px solid #fff;
+    margin-top: 10px;
+    outline: none;
+}
+
+.photo-container {
+    display: flex;
+    justify-content: center;
+    gap: 15px; /* gap between photos */
+    position: relative;
+    height: auto;
+    margin-top: 30px;
+}
+.slidePhoto, .normalPhoto, #finalPhoto {
+    width: 300px;   /* bigger photo */
+    height: 300px;  /* bigger photo */
+    border-radius: 50%;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+    object-fit: contain; /* full photo shown, no cut */
+    background: pink;
+}
+
+.slidePhoto { animation: moveUp 6s ease-in-out infinite alternate; }
+@keyframes moveUp {
+    0% { transform: translateY(100px); opacity: 0; }
+    50% { transform: translateY(50px); opacity: 0.5; }
+    100% { transform: translateY(0); opacity: 1; }
+}
+
+.caption {
+    margin-top: 10px;
+    font-size: 18px;
+    color: white;
+    text-shadow: 1px 1px 3px #ff1493;
+}
+.game-button {
+    margin: 10px;
+    display: inline-block;
+}
+
+.heartContainer { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; }
+
+</style>
+</head>
+<body>
+
+<!-- Slide 1: Intro + Music -->
+<div class="slide active" id="slide1">
+    <h1>Hey Babe! 😍</h1>
+    <h2>Click Start to see your surprise 💖</h2>
+    <button onclick="nextSlide()">Start</button>
+    <iframe style="border-radius:12px; display:block; margin:20px auto;"
+        src="https://open.spotify.com/embed/track/3IZhkhpuGU7iNWDcQ30nZm"
+        width="300" height="80" frameborder="0" allowtransparency="true" allow="encrypted-media">
+    </iframe>
+</div>
+
+<!-- Slide 2: Secret Code -->
+<div class="slide" id="slide2">
+    <h1>Enter Secret Code 🔒</h1>
+    <input type="password" id="codeInput" placeholder="Enter code">
+    <button onclick="checkCode()">Submit</button>
+    <p id="codeMsg" style="color:white; margin-top:20px;"></p>
+</div>
+
+<!-- Slide 3: Tricky Game -->
+<div class="slide" id="slide3">
+    <h1>Tricky Game 🕹️</h1>
+    <p>Answer 20 questions correctly!</p>
+    <div id="questionBox"></div>
+</div>
+
+<!-- Slide 4: First 3 Photos with animation -->
+<div class="slide" id="slide4">
+    <h1>Mera Favorite Person 😘💫💕</h1>
+    <div class="photo-container">
+        <img src="images/pic1.jpg" class="slidePhoto">
+        <img src="images/pic2.jpg" class="slidePhoto">
+        <img src="images/pic3.jpg" class="slidePhoto">
+    </div>
+    <div class="caption">"oye loo ma Golu Molu pyara bcha💖🥰😉,Kitna cute hai yaar😉😉" | "Kitna handsome hai ooie ooie 😁😉💕" | "Hero hai yaar💖🔥aag😎🔥"</div>
+    <div class="heartContainer"></div>
+    <button onclick="nextSlide()">Next</button>
+</div>
+
+<!-- Slides 5-41: Memory photos (no animation) -->
+<div id="photoSlidesContainer"></div>
+
+<!-- Slide 42: Interactive Final Surprise -->
+<div class="slide" id="finalSlide">
+  <div style="position:relative; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; background: radial-gradient(circle at top, #ff9de2, #ffc0cb); overflow:hidden;">
+      <h1 style="
+          font-size:4em;
+          color:#e39090;
+          text-shadow: 0 0 20px #5c4550, 0 0 30px #ff1493, 0 0 40px #e9dfe4;
+          position: relative;
+          z-index: 2;
+      ">✨ Surprise Time! ✨</h1>
+
+      <!-- Hidden Circular Photo -->
+      <img src="images/final.jpg" id="finalPhoto" style="display:none; box-shadow:0 10px 30px rgba(0,0,0,0.5); z-index:2;">
+
+      <div id="miniSurprises" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;"></div>
+      <div id="sparkleContainer" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;"></div>
+      <canvas id="confettiCanvas" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;"></canvas>
+
+      <button onclick="showFinalPhoto()" style="margin-top:20px; padding:15px 30px; font-size:18px; border:none; border-radius:10px; cursor:pointer;">Open Photo</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<script>
+// Slide Navigation
+let currentSlide = 1;
+function nextSlide() {
+    document.querySelectorAll('.slide')[currentSlide-1].classList.remove('active');
+    currentSlide++;
+    document.querySelectorAll('.slide')[currentSlide-1].classList.add('active');
+}
+
+// Secret Code
+function checkCode() {
+    let code = document.getElementById("codeInput").value;
+    if(code === "1999") {
+        document.getElementById("codeMsg").innerText = "Correct! 🎉";
+        setTimeout(nextSlide, 1000);
+    } else {
+        document.getElementById("codeMsg").innerText = "Wrong! Try Again 😅";
+    }
+}
+
+// Tricky Game
+const questions = [
+    {q:"Tum mujhe secretly miss karte ho?", a:"Yes"},
+    {q:"Kabhi mera drama ignore karoge?", a:"No"},
+    {q:"Hamesha mere memes like karte ho?", a:"Yes"},
+    {q:"Mujhe jealous dekh ke gussa ho jaoge?", a:"No"},
+    {q:"Bina reason ke gifts dena pasand hai?", a:"Yes"},
+    {q:"Kabhi mera playlist skip karoge?", a:"No"},
+    {q:"Hamesha mere saath time spend karna chahoge?", a:"Yes"},
+    {q:"Meri cute baatein kabhi ignore karoge?", a:"No"},
+    {q:"Kabhi secretly mujhe surprise dena pasand hai?", a:"Yes"},
+    {q:"Hamesha mere jokes pe hansoge?", a:"Yes"},
+    {q:"Kabhi jaan-bujh ke hurt karoge?", a:"No"},
+    {q:"Hamesha mera saath dena chahoge?", a:"Yes"},
+    {q:"Kabhi secretly competition karoge?", a:"No"},
+    {q:"Bas baat karne ke liye call karoge?", a:"Yes"},
+    {q:"Kabhi messages ignore karoge?", a:"No"},
+    {q:"Hamesha smile karwaoge?", a:"Yes"},
+    {q:"Kabhi ignore karke mera mood kharab karoge?", a:"No"},
+    {q:"Mujhe secretly admire karte ho?", a:"Yes"},
+    {q:"Kabhi bored hoke baatein ignore karoge?", a:"No"},
+    {q:"Hamesha mere liye extra effort karoge?", a:"Yes"}
+];
+
+let currentQ = 0;
+function showQuestion() {
+    if(currentQ >= questions.length) { nextSlide(); return; }
+    let box = document.getElementById("questionBox");
+    box.innerHTML = `<h2>${questions[currentQ].q}</h2>`;
+    let yesBtn = document.createElement("button");
+    yesBtn.innerText = "Yes";
+    yesBtn.className = "game-button";
+    yesBtn.onclick = () => checkAnswer("Yes", yesBtn);
+    let noBtn = document.createElement("button");
+    noBtn.innerText = "No";
+    noBtn.className = "game-button";
+    noBtn.onclick = () => checkAnswer("No", noBtn);
+    box.appendChild(yesBtn);
+    box.appendChild(noBtn);
+}
+function checkAnswer(ans, btn) {
+    if(ans === questions[currentQ].a) { currentQ++; showQuestion(); }
+    else {
+        btn.style.position = "absolute";
+        btn.style.top = Math.random()*70 + "vh";
+        btn.style.left = Math.random()*70 + "vw";
+    }
+}
+showQuestion();
+
+// Dynamic photo slides
+const photoContainer = document.getElementById("photoSlidesContainer");
+const captions = [
+    "Handsome toh hai hi,par mere liye wo sabse cute aur special hai 💫🫂😉",
+    "Aapko dekh ke lagta hai chand bhi sharma jaye 😍✨",
+    "Bas ek hi word suit karta hai aapke liye – COOL with STYLE 😍🔥🥶",
+    "Hey Hey ae photo mu jetebele dekhe dil bhitare bahut kichhi hue😉,kaha najar na lagu🫂😎😘",
+    "Gentleman wali personality aur sanskari vibes… bas dil jeet liya 💘",
+    "Na style, na attitude… bas ek simple smile hi dil jeetne ke liye kaafi hai 💞",
+    "Oye Hero babaji habara plan achhi ki apana nkara😁😁😉",
+    "Office look me bhi hero wali shine… bas dil aur zyada fida ho gaya 😍",
+    "Aap simple look me bhi itne handsome lagte ho ki nazar hatana mushkil ho jata hai 😍✨",
+    "Handsome toh aap hamesha ho, par gora look me toh aur bhi classy lagte ho 👑",
+    "Kuch log filter se handsome lagte hain, par aap apne natural look se hi hero ho 😍",
+    "Topi chhoti si hai, par uske saath aapka swag aur smile dono hi next level lag rahe hain 😎✨",
+    "Mast wala viebs hai yaar💖🔥",
+    "Mandir ki shanti aur aapki presence… dono hi ekdum alag hi chamak de rahe hain 🙏✨",
+    "😘😎🫂🥰😉bas just like a wow ",
+    "hey hey ki look ma pura hero au😎😎",
+    "Aapko dekh ke lagta hai filmon wale hero bhi kam pad jaayenge 😎✨",
+    "Hey Hey simple look re laguchha ki pura handsome au sundar🫂😘🔥",
+    "Bas ek hi word suit karta hai aapke liye – COOL with STYLE 😍🔥🥶",
+    "Pura hero au ek dam 😘😉😉",
+    "Arre wah, aap toh din-ba-din aur handsome hote ja rahe ho… dil aa gaya bas ❤🫂🥰",
+    "Selfie ho ya real life,dono me full-on handsome😍🤗😎",
+    "car ke aage hero vibes full on👑💫",
+    "Ki style loo dekha tike Hero vibes on😎🔥",
+    "Arre wah, aap toh din-ba-din aur handsome hote ja rahe ho… dil aa gaya bas ❤🫂🥰",
+    "Peeche se hi dikhe ,par style se sabse aage🚲✨",
+    "Aap itna jaldi kaise itna handsome ho gaye Hey hey Dil aagaya aap ke upar😉🌝✨",
+    "Hey Hey kaha najar na lagu ae Hero upare kete handsome yaar isshh😘😘🫂💖💖💖",
+    "Pose perfect,looks perfect - hero ke style ka asli magic!💫💖💖🌷🤭🥰",
+    "Black shirt pe hero,aur vibes itne strong ki sab dekhte reh jaayein.",
+    "Kn laguchha ma pura hero 😉🌝✨🫂😎 ",
+    "Style alag,attitude alag,aur smile sabse alag😎🔥",
+    "Bike ka roar aur hero ka core,Dono ka combo kar de sabka score 🏍✨",
+    "Glass ka frame, hero ka game,Style aur confidence dono same 🔥",
+    "🔥🔥🔥🔥😎😎😎😍😍😍😍😘😘💖💖",
+    "Bike pe hero, style full on,Raste bhi ruk jaaye, attitude ka effect strong 😎✨",
+    "Ek hi frame me hero ka pura vibe,Smile aur attitude dono perfect mix 😎✨"
+];
+for(let i=4;i<=40;i++){
+    let slideDiv = document.createElement("div");
+    slideDiv.className = "slide";
+    slideDiv.innerHTML = `
+        <h2>Memory ${i-3}</h2>
+        <img src="images/pic${i}.jpg" class="normalPhoto"><br>
+        <div class="caption">${captions[i-4] || "Sweet memory 💖"}</div>
+        <div class="heartContainer"></div>
+        <button onclick="nextSlide()">Next</button>
+    `;
+    photoContainer.appendChild(slideDiv);
+}
+
+// Floating hearts
+function createFloatingHeart(container){
+    const heart = document.createElement('div');
+    const heartEmojis = ['❤️','💖','🔥','😎','🫂'];
+    heart.innerText = heartEmojis[Math.floor(Math.random()*heartEmojis.length)];
+    heart.style.position = 'absolute';
+    heart.style.fontSize = (Math.random()*20 + 20) + 'px';
+    heart.style.top = Math.random()*80 + '%';
+    heart.style.left = Math.random()*80 + '%';
+    heart.style.opacity = Math.random()*0.8 + 0.2;
+    heart.style.pointerEvents = 'none';
+    heart.style.transform = `rotate(${Math.random()*30-15}deg)`;
+    container.appendChild(heart);
+    let topPos = parseFloat(heart.style.top);
+    let leftPos = parseFloat(heart.style.left);
+    const floatInterval = setInterval(()=>{ topPos -= 0.3; leftPos += Math.sin(topPos/5)/2; heart.style.top = topPos + '%'; heart.style.left = leftPos + '%'; heart.style.opacity -= 0.002; if(topPos < -10 || heart.style.opacity <= 0){ heart.remove(); clearInterval(floatInterval); } }, 20);
+}
+document.querySelectorAll('.slide').forEach(slide=>{ const container = slide.querySelector('.heartContainer'); if(container){ setInterval(()=>createFloatingHeart(container), 500); } });
+
+// Final Surprise Function
+function showFinalPhoto() {
+    const photo = document.getElementById('finalPhoto');
+    photo.style.display = 'block';
+    photo.style.borderRadius = '50%';
+    photo.animate([{ transform: 'translateX(0)' },{ transform: 'translateX(-10px)' },{ transform: 'translateX(10px)' },{ transform: 'translateX(-10px)' },{ transform: 'translateX(10px)' },{ transform: 'translateX(0)' }], {duration:600, iterations:1});
+
+    const miniContainer = document.getElementById('miniSurprises');
+    const miniElements = ['🎉','💖','🫂','❤️','🎊'];
+    for(let i=0;i<30;i++){
+        const mini = document.createElement('div');
+        mini.innerText = miniElements[Math.floor(Math.random()*miniElements.length)];
+        mini.style.position = 'absolute';
+        mini.style.fontSize = Math.random()*30 + 20 + 'px';
+        mini.style.top = Math.random()*80 + '%';
+        mini.style.left = Math.random()*80 + '%';
+        mini.style.opacity = Math.random() * 0.8 + 0.2;
+        mini.style.pointerEvents = 'none';
+        miniContainer.appendChild(mini);
+        let topPos = parseFloat(mini.style.top);
+        const floatInterval = setInterval(() => { topPos -= 0.5; mini.style.top = topPos + '%'; mini.style.opacity -= 0.01; if (topPos < -10 || mini.style.opacity <= 0){ mini.remove(); clearInterval(floatInterval); } }, 20);
+    }
+
+    const canvas = document.getElementById("confettiCanvas");
+    const myConfetti = confetti.create(canvas, { resize: true, useWorker: true });
+    myConfetti({ particleCount: 150, spread: 120, origin: { y: 0.6 } });
+}
+</script>
+</body>
+</html>
